@@ -1,0 +1,1 @@
+/usr/lib64/squid/security_file_certgen -c -s /var/lib/ssl_db -M 4
