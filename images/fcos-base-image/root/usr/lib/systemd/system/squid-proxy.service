@@ -6,13 +6,13 @@ RequiresMountsFor=%t/containers
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-Environment=PODMAN_SQUID_UID=200
+EnvironmentFile=/etc/bastion.conf
 Restart=on-failure
 TimeoutStopSec=70
 ExecStartPre=/bin/rm -f %t/%n.ctr-id
 ExecStartPre=/usr/bin/podman login quay.io
 ExecStartPre=-/bin/sh -c '/usr/bin/mkdir -p /var/squid/{cache,log,lib}'
-ExecStartPre=-/bin/sh -c '/usr/bin/podman run --rm --interactive -v "/var/squid/lib:/var/lib:Z" quay.io/openshifttest/squid-proxy:1.2.0 bash < /usr/share/squid/create_ssl_db.sh'
+ExecStartPre=-/bin/sh -c '/usr/bin/podman run --rm --interactive -v "/var/squid/lib:/var/lib:Z" ${PODMAN_SQUID_IMAGE} bash < /usr/share/squid/create_ssl_db.sh'
 ExecStartPre=-/bin/sh -c '/usr/bin/chown -R ${PODMAN_SQUID_UID}:${PODMAN_SQUID_UID} /var/squid'
 ExecStartPre=-/bin/sh -c 'podman unshare chown ${PODMAN_SQUID_UID}:${PODMAN_SQUID_UID} -R /var/squid'
 ExecStart=/usr/bin/podman run --rm --log-driver=journald -d --name squid-proxy --hostname squid-proxy --net host --user ${PODMAN_SQUID_UID} \
@@ -20,7 +20,7 @@ ExecStart=/usr/bin/podman run --rm --log-driver=journald -d --name squid-proxy -
     -v "/var/squid/cache:/var/spool/squid:Z" \
     -v "/var/squid/log:/var/log/squid:Z" \
     -v "/var/squid/lib:/var/lib:Z" \
-    quay.io/openshifttest/squid-proxy:1.2.0
+    ${PODMAN_SQUID_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
 ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
 ExecStopPost=-/bin/sh -c 'rm -rf /var/squid/lib/ssl_db'
