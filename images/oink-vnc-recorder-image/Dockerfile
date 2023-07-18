@@ -11,4 +11,5 @@ RUN ls -lahR && go mod download && go build -o /vnc-recorder
 
 FROM linuxserver/ffmpeg:version-5.1.2-cli
 COPY --from=build-env /vnc-recorder /
-ENTRYPOINT ["sh"]
+ENTRYPOINT ["/vnc-recorder"]
+CMD [""]
